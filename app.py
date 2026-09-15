@@ -80,6 +80,11 @@ available_weeks = (
     .to_list()
 )
 
+if not available_weeks:
+    st.warning("No NFL weekly statistics are available yet.")
+    st.stop()
+
+
 week = st.selectbox(
     "🏈 NFL Week",
     available_weeks,
@@ -188,8 +193,6 @@ stats_id_col = find_column(
 # Combines:
 # 1. Weekly NFL roster
 # 2. Players appearing in weekly stats
-#
-# This gives us a much broader search pool.
 # ==================================================
 
 def build_master_pool(position):
@@ -478,8 +481,8 @@ with st.expander(
 ):
 
     st.write(
-        "First, click the player's position box and "
-        "start typing the player's **last name**."
+        "Click the player's position box and start typing "
+        "the player's last name."
     )
 
     st.write(
@@ -548,7 +551,7 @@ def find_player_stats(
 
 
     # ----------------------------------------------
-    # TRY NAME
+    # TRY PLAYER NAME
     # ----------------------------------------------
 
     if stats_name_col:
@@ -628,11 +631,6 @@ def calculate_player(
         "rushing_tds"
     )
 
-    receptions = safe_stat(
-        row,
-        "receptions"
-    )
-
     receiving_yards = safe_stat(
         row,
         "receiving_yards"
@@ -644,9 +642,14 @@ def calculate_player(
     )
 
 
-    # ----------------------------------------------
-    # QB
-    # ----------------------------------------------
+    # ==============================================
+    # QUARTERBACK SCORING
+    #
+    # .12 per passing yard
+    # 4 per passing TD
+    # 6 per rushing TD
+    # -2 per interception
+    # ==============================================
 
     if position == "QB":
 
@@ -672,16 +675,22 @@ def calculate_player(
         )
 
 
-    # ----------------------------------------------
-    # RB
-    # ----------------------------------------------
+    # ==============================================
+    # RUNNING BACK SCORING
+    #
+    # .1 per rushing yard
+    # 6 per rushing TD
+    # .1 per receiving yard
+    # 6 per receiving TD
+    #
+    # NO POINTS PER RECEPTION
+    # ==============================================
 
     elif position == "RB":
 
         score = (
             rushing_yards * .1
             + rushing_tds * 6
-            + receptions
             + receiving_yards * .1
             + receiving_tds * 6
         )
@@ -689,7 +698,6 @@ def calculate_player(
         stats_text = (
             f"{rushing_yards} Rush Yds • "
             f"{rushing_tds} Rush TD • "
-            f"{receptions} Catches • "
             f"{receiving_yards} Rec Yds • "
             f"{receiving_tds} Rec TD"
         )
@@ -697,15 +705,17 @@ def calculate_player(
         calculation = (
             f"({rushing_yards} × .1) + "
             f"({rushing_tds} × 6) + "
-            f"({receptions} × 1) + "
             f"({receiving_yards} × .1) + "
             f"({receiving_tds} × 6)"
         )
 
 
-    # ----------------------------------------------
-    # WR / TE
-    # ----------------------------------------------
+    # ==============================================
+    # WIDE RECEIVER / TIGHT END SCORING
+    #
+    # .1 per receiving yard
+    # 6 per receiving TD
+    # ==============================================
 
     else:
 
@@ -735,7 +745,7 @@ def calculate_player(
 
 
 # ==================================================
-# CALCULATE
+# CALCULATE TEAM SCORE
 # ==================================================
 
 st.divider()
@@ -765,7 +775,7 @@ if st.button(
 
 
     # ----------------------------------------------
-    # CHECK MISSING PLAYERS
+    # CHECK FOR MISSING PLAYERS
     # ----------------------------------------------
 
     if any(
@@ -781,7 +791,7 @@ if st.button(
     else:
 
         # ------------------------------------------
-        # CHECK DUPLICATES
+        # CHECK FOR DUPLICATE PLAYERS
         # ------------------------------------------
 
         player_keys = [
@@ -800,15 +810,14 @@ if st.button(
         ):
 
             st.warning(
-                "⚠️ You cannot use the same "
-                "player twice."
+                "⚠️ You cannot use the same player twice."
             )
 
 
         else:
 
             # --------------------------------------
-            # CALCULATE
+            # CALCULATE EVERY PLAYER
             # --------------------------------------
 
             results = [
@@ -825,7 +834,7 @@ if st.button(
 
 
             # --------------------------------------
-            # HEADER
+            # TEAM HEADER
             # --------------------------------------
 
             st.success(
@@ -877,7 +886,7 @@ if st.button(
 
 
             # --------------------------------------
-            # SHOW MATH
+            # SHOW THE MATH
             # --------------------------------------
 
             st.subheader(
@@ -959,30 +968,31 @@ with st.expander(
 ### Quarterback
 
 **Passing**
-- 0.12 points per passing yard
-- 4 points per passing touchdown
-- −2 points per interception
+- **0.12 points** per passing yard
+- **4 points** per passing touchdown
+- **−2 points** per interception
 
 **Rushing**
-- 6 points per rushing touchdown
+- **6 points** per rushing touchdown
 
 
 ### Running Back
 
 **Rushing**
-- 0.1 points per rushing yard
-- 6 points per rushing touchdown
+- **0.1 points** per rushing yard
+- **6 points** per rushing touchdown
 
 **Receiving**
-- 1 point per catch
-- 0.1 points per receiving yard
-- 6 points per receiving touchdown
+- **0.1 points** per receiving yard
+- **6 points** per receiving touchdown
+
+**There are NO points awarded just for making a catch.**
 
 
 ### Wide Receiver & Tight End
 
-- 0.1 points per receiving yard
-- 6 points per receiving touchdown
+- **0.1 points** per receiving yard
+- **6 points** per receiving touchdown
 """
     )
 
