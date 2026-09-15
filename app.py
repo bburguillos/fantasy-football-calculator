@@ -618,7 +618,7 @@ def calculate_player(
 
     interceptions = safe_stat(
         row,
-        "interceptions"
+        "passing_interceptions"
     )
 
     rushing_yards = safe_stat(
